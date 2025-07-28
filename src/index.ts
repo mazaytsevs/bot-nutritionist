@@ -21,6 +21,7 @@ enum BotState {
   AwaitingHeight,
   AwaitingActivity,
   AwaitingGoal,
+  AwaitingRecipeType, // новое состояние
   Completed
 }
 
@@ -92,7 +93,10 @@ function getStepNorm(activity: ActivityLevel): number {
 function askConsultation(chatId: number) {
   bot.sendMessage(chatId, 'Выберите консультацию:', {
     reply_markup: {
-      keyboard: [[{ text: 'КБЖУ + вода + активность' }]],
+      keyboard: [
+        [{ text: 'КБЖУ + вода + активность' }],
+        [{ text: 'ПП рецепты' }]
+      ],
       one_time_keyboard: true
     }
   });
@@ -140,6 +144,43 @@ function askGoal(chatId: number) {
   });
 }
 
+function askRecipeType(chatId: number) {
+  bot.sendMessage(chatId, 'Выберите прием пищи:', {
+    reply_markup: {
+      keyboard: [
+        [{ text: 'Завтрак' }, { text: 'Обед' }],
+        [{ text: 'Ужин' }, { text: 'Перекус' }],
+        [{ text: 'Напитки' }]
+      ],
+      one_time_keyboard: true
+    }
+  });
+}
+
+function sendRecipeStub(chatId: number, type: string) {
+  let recipe = '';
+  switch (type) {
+    case 'Завтрак':
+      recipe = 'Овсяная каша с ягодами: 40 г овсянки, 200 мл воды, 50 г ягод, 1 ч.л. мёда.';
+      break;
+    case 'Обед':
+      recipe = 'Овсяная каша с ягодами: 40 г овсянки, 200 мл воды, 50 г ягод, 1 ч.л. мёда.';
+      break;
+    case 'Ужин':
+      recipe = 'Овсяная каша с ягодами: 40 г овсянки, 200 мл воды, 50 г ягод, 1 ч.л. мёда.';
+      break;
+    case 'Перекус':
+      recipe = 'Овсяная каша с ягодами: 40 г овсянки, 200 мл воды, 50 г ягод, 1 ч.л. мёда.';
+      break;
+    case 'Напитки':
+      recipe = 'Овсяная каша с ягодами: 40 г овсянки, 200 мл воды, 50 г ягод, 1 ч.л. мёда.';
+      break;
+    default:
+      recipe = 'Выберите прием пищи.';
+  }
+  bot.sendMessage(chatId, recipe);
+}
+
 // ────────────────────────────────────────────────────────────────────────
 // 6. Обработчик команд и сообщений
 // ────────────────────────────────────────────────────────────────────────
@@ -149,7 +190,7 @@ bot.onText(/\/start/, (msg: Message) => {
     state: BotState.AwaitingConsultation,
     data: {}
   });
-  bot.sendMessage(chatId, 'Привет! ))  Я бот для расчёта КБЖУ, воды и шагов.');
+  bot.sendMessage(chatId, 'Привет! Я бот для расчёта КБЖУ, воды и шагов.');
   askConsultation(chatId);
 });
 
@@ -164,6 +205,9 @@ bot.on('message', (msg: Message) => {
       if (text === 'КБЖУ + вода + активность') {
         session.state = BotState.AwaitingName;
         askName(chatId);
+      } else if (text === 'ПП рецепты') {
+        session.state = BotState.AwaitingRecipeType;
+        askRecipeType(chatId);
       } else {
         askConsultation(chatId);
       }
@@ -238,6 +282,20 @@ bot.on('message', (msg: Message) => {
     case BotState.Completed:
       sendResults(chatId, session.data);
       sessions.delete(chatId);
+      break;
+    case BotState.AwaitingRecipeType:
+      if ([
+        'Завтрак',
+        'Обед',
+        'Ужин',
+        'Перекус',
+        'Напитки'
+      ].includes(text)) {
+        sendRecipeStub(chatId, text);
+        sessions.delete(chatId);
+      } else {
+        askRecipeType(chatId);
+      }
       break;
   }
 });
