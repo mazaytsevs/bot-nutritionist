@@ -1,0 +1,18 @@
+{
+  "name": "kbju-bot",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.0.1",
+    "node-telegram-bot-api": "^0.61.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "@types/node-telegram-bot-api": "^0.64.9",
+    "typescript": "^4.9.0"
+  }
+}
